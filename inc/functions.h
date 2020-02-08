@@ -1,0 +1,1 @@
+void network_initialise(network_t *network);

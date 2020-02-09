@@ -10,10 +10,10 @@
 
 int main() {
     network_t network;
-    images_t trainingImages;
-    labels_t traingLabels;
-    load_images("data/train-images.idx3-ubyte", &trainingImages);
+    dataset_t trainingData;
+    load_images("data/train-images.idx3-ubyte", &trainingData.imageData);
+    load_labels("data/train-labels.idx1-ubyte", &trainingData.labelData);
     network_initialise(&network);
-    free(trainingImages.images);
+    free(trainingData.imageData.images);
     return 0;
 }

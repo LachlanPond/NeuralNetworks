@@ -29,3 +29,8 @@ typedef struct {
     int32_t itemCount;
     uint8_t  *labels;
 } labels_t;
+
+typedef struct {
+    images_t imageData;
+    labels_t labelData;
+} dataset_t;

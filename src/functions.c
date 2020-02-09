@@ -13,6 +13,7 @@ void network_initialise(network_t *network) {
     time_t t;
     srand((unsigned) time(&t));
     for (int i = 0; i < INPUT_LAYER_SIZE; i++) {
+        // The hiddedn layer size determines the amount of weights for each neuron of the input layer
         network->inputLayer[i].weights = (float*) malloc(HIDDEN_LAYER_SIZE * sizeof(float));
         for (int j = 0; j < HIDDEN_LAYER_SIZE; j++) {
             network->inputLayer[i].weights[j] = (float)(rand()) / (float)RAND_MAX;
@@ -22,6 +23,7 @@ void network_initialise(network_t *network) {
         for (int neuron = 0; neuron < HIDDEN_LAYER_SIZE; neuron++) {
             network->hiddenLayers[hiddenLayer][neuron].value   = (float)(rand()) / (float)RAND_MAX;
             network->hiddenLayers[hiddenLayer][neuron].bias    = (float)(rand()) / (float)RAND_MAX;
+            // Unless the hidden layer the loop is up to is the final hidden layer. Needed as the weight will relate to the output layer which is a different size
             if (hiddenLayer == HIDDEN_LAYERS-1) {
                 network->hiddenLayers[hiddenLayer][neuron].weights = (float*) malloc(OUTPUT_LAYER_SIZE * sizeof(float));
                 for (int weight = 0; weight < OUTPUT_LAYER_SIZE; weight++) {
@@ -87,41 +89,60 @@ void load_images(char *fileLocation, images_t *imageSet) {
     FILE *fp;
     uint32_t fileLength = 0;
     uint8_t *buffer;
-    uint8_t dummy;
     fp = fopen(fileLocation, "rb");   // Open file in binary mode
     if (fp == NULL) {
         perror("Error in opening file");
     }
     do {
-        dummy = fgetc(fp);
+        fgetc(fp);
         fileLength++;
     } while (!feof(fp));
     rewind(fp);
 
-    printf("Allo\n");
-    printf("length: %u\n", fileLength);
-    printf("Allo\n");
-
     buffer = (uint8_t*) malloc(fileLength * sizeof(uint8_t));
-    printf("Allo\n");
-
     fileLength = 0;
     do {
         buffer[fileLength] = fgetc(fp);
         fileLength++;
     } while (!feof(fp));
     fclose(fp);
-    printf("Allo\n");
 
     imageSet->images = (uint8_t *) malloc((fileLength - 16) * sizeof(uint8_t));
-    printf("ugandan key\n");
-
-
     // Populate the image set struct
-    imageSet->magicNumber = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + (buffer[3] << 0);
-    imageSet->imageCount = (buffer[4] << 24) + (buffer[5] << 16) + (buffer[6] << 8) + (buffer[7] << 0);
-    imageSet->rowCount = (buffer[8] << 24) + (buffer[9] << 16) + (buffer[10] << 8) + (buffer[11] << 0);
-    imageSet->columnCount = (buffer[12] << 24) + (buffer[13] << 16) + (buffer[14] << 8) + (buffer[15] << 0);
+    imageSet->magicNumber   = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + (buffer[3] << 0);
+    imageSet->imageCount    = (buffer[4] << 24) + (buffer[5] << 16) + (buffer[6] << 8) + (buffer[7] << 0);
+    imageSet->rowCount      = (buffer[8] << 24) + (buffer[9] << 16) + (buffer[10] << 8) + (buffer[11] << 0);
+    imageSet->columnCount   = (buffer[12] << 24) + (buffer[13] << 16) + (buffer[14] << 8) + (buffer[15] << 0);
     memcpy(imageSet->images, &buffer[16], (fileLength - 16) * sizeof(uint8_t));
+    free(buffer);
+}
+
+void load_labels(char *fileLocation, labels_t *labelSet) {
+    FILE *fp;
+    uint32_t fileLength = 0;
+    uint8_t *buffer;
+    fp = fopen(fileLocation, "rb");   // Open file in binary mode
+    if (fp == NULL) {
+        perror("Error in opening file");
+    }
+    do {
+        fgetc(fp);
+        fileLength++;
+    } while (!feof(fp));
+    rewind(fp);
+
+    buffer = (uint8_t*) malloc(fileLength * sizeof(uint8_t));
+    fileLength = 0;
+    do {
+        buffer[fileLength] = fgetc(fp);
+        fileLength++;
+    } while (!feof(fp));
+    fclose(fp);
+
+    labelSet->labels = (uint8_t *) malloc((fileLength - 8) * sizeof(uint8_t));
+    // Populate the label set struct
+    labelSet->magicNumber   = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + (buffer[3] << 0);
+    labelSet->itemCount     = (buffer[4] << 24) + (buffer[5] << 16) + (buffer[6] << 8) + (buffer[7] << 0);
+    memcpy(labelSet->labels, &buffer[8], (fileLength - 8) * sizeof(uint8_t));
     free(buffer);
 }

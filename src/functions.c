@@ -2,6 +2,7 @@
 #define INCLUDES
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include "../inc/header.h"
 #include "../inc/functions.h"
@@ -62,8 +63,8 @@ void propogate_forward(network_t *network) {
                     weightedSum += network->hiddenLayers[hiddenLayer-1][prevNeuron].weights[neuron] * network->hiddenLayers[hiddenLayer-1][prevNeuron].value;
                 }
             }
-            // Compute the value of the neuron that the loop is up to
-            network->hiddenLayers[hiddenLayer][neuron].value = weightedSum + network->hiddenLayers[hiddenLayer][neuron].bias;
+            // Compute the value of the neuron that the loop is up to using the ReLU of the weighted sum + the bias
+            network->hiddenLayers[hiddenLayer][neuron].value = ReLU(weightedSum + network->hiddenLayers[hiddenLayer][neuron].bias);
         }
     }
     // The output layer neuron values can be found by using the last of the hidden layer's neuron values
@@ -72,7 +73,55 @@ void propogate_forward(network_t *network) {
         for (int prevNeuron = 0; prevNeuron < HIDDEN_LAYER_SIZE; prevNeuron++) {
             weightedSum += network->hiddenLayers[HIDDEN_LAYERS-1][prevNeuron].weights[neuron] * network->hiddenLayers[HIDDEN_LAYERS-1][prevNeuron].value;
         }
-        // Compute the value of the neuron that the loop is up to
-        network->outputLayer[neuron].value = weightedSum + network->outputLayer[neuron].bias;
+        // Compute the value of the neuron that the loop is up to using the ReLU of the weighted sum + the bias
+        network->outputLayer[neuron].value = ReLU(weightedSum + network->outputLayer[neuron].bias);
     }
+}
+
+float ReLU(float input) {
+    if (0.0f > input) return 0.0f;
+    else return input;
+}
+
+void load_images(char *fileLocation, images_t *imageSet) {
+    FILE *fp;
+    uint32_t fileLength = 0;
+    uint8_t *buffer;
+    uint8_t dummy;
+    fp = fopen(fileLocation, "rb");   // Open file in binary mode
+    if (fp == NULL) {
+        perror("Error in opening file");
+    }
+    do {
+        dummy = fgetc(fp);
+        fileLength++;
+    } while (!feof(fp));
+    rewind(fp);
+
+    printf("Allo\n");
+    printf("length: %u\n", fileLength);
+    printf("Allo\n");
+
+    buffer = (uint8_t*) malloc(fileLength * sizeof(uint8_t));
+    printf("Allo\n");
+
+    fileLength = 0;
+    do {
+        buffer[fileLength] = fgetc(fp);
+        fileLength++;
+    } while (!feof(fp));
+    fclose(fp);
+    printf("Allo\n");
+
+    imageSet->images = (uint8_t *) malloc((fileLength - 16) * sizeof(uint8_t));
+    printf("ugandan key\n");
+
+
+    // Populate the image set struct
+    imageSet->magicNumber = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + (buffer[3] << 0);
+    imageSet->imageCount = (buffer[4] << 24) + (buffer[5] << 16) + (buffer[6] << 8) + (buffer[7] << 0);
+    imageSet->rowCount = (buffer[8] << 24) + (buffer[9] << 16) + (buffer[10] << 8) + (buffer[11] << 0);
+    imageSet->columnCount = (buffer[12] << 24) + (buffer[13] << 16) + (buffer[14] << 8) + (buffer[15] << 0);
+    memcpy(imageSet->images, &buffer[16], (fileLength - 16) * sizeof(uint8_t));
+    free(buffer);
 }

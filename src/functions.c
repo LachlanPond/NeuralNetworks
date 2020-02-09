@@ -16,18 +16,18 @@ void network_initialise(network_t *network) {
         // The hiddedn layer size determines the amount of weights for each neuron of the input layer
         network->inputLayer[i].weights = (float*) malloc(HIDDEN_LAYER_SIZE * sizeof(float));
         for (int j = 0; j < HIDDEN_LAYER_SIZE; j++) {
-            network->inputLayer[i].weights[j] = (float)(rand()) / (float)RAND_MAX;
+            network->inputLayer[i].weights[j] = ((float)(rand()) / (float)RAND_MAX) * 2.0f -1.0f;
         }
     }
     for (int hiddenLayer = 0; hiddenLayer < HIDDEN_LAYERS; hiddenLayer++) {
         for (int neuron = 0; neuron < HIDDEN_LAYER_SIZE; neuron++) {
-            network->hiddenLayers[hiddenLayer][neuron].value   = (float)(rand()) / (float)RAND_MAX;
-            network->hiddenLayers[hiddenLayer][neuron].bias    = (float)(rand()) / (float)RAND_MAX;
+            network->hiddenLayers[hiddenLayer][neuron].value   = ((float)(rand()) / (float)RAND_MAX) * 2.0f - 1.0f;
+            network->hiddenLayers[hiddenLayer][neuron].bias    = ((float)(rand()) / (float)RAND_MAX) * 2.0f - 1.0f;
             // Unless the hidden layer the loop is up to is the final hidden layer. Needed as the weight will relate to the output layer which is a different size
             if (hiddenLayer == HIDDEN_LAYERS-1) {
                 network->hiddenLayers[hiddenLayer][neuron].weights = (float*) malloc(OUTPUT_LAYER_SIZE * sizeof(float));
                 for (int weight = 0; weight < OUTPUT_LAYER_SIZE; weight++) {
-                    network->hiddenLayers[hiddenLayer][neuron].weights[weight] = (float)(rand()) / (float)RAND_MAX;
+                    network->hiddenLayers[hiddenLayer][neuron].weights[weight] = ((float)(rand()) / (float)RAND_MAX) * 2.0f - 1.0f;
                 }
             }
             else {
@@ -36,18 +36,20 @@ void network_initialise(network_t *network) {
                     network->hiddenLayers[hiddenLayer][neuron].weights[weight] = (float)(rand()) / (float)RAND_MAX;
                 }
             }
-            
         }
     }
     for (int i = 0; i < OUTPUT_LAYER_SIZE; i++) {
-        network->outputLayer[i].value   = (float)(rand()) / (float)RAND_MAX;
-        network->outputLayer[i].bias    = (float)(rand()) / (float)RAND_MAX;
+        network->outputLayer[i].value   = ((float)(rand()) / (float)RAND_MAX) * 2.0f - 1.0f;
+        network->outputLayer[i].bias    = ((float)(rand()) / (float)RAND_MAX) * 2.0f - 1.0f;
     }
 }
 
 /* Propogate through the whole network */
-void propogate_forward(network_t *network) {
+void propogate_forward(network_t *network, dataset_t *dataset, int item) {
     /* Need to find the values of the nerons for each layer after the input layer */
+    for (int neuron = 0; neuron < INPUT_LAYER_SIZE; neuron++) {
+        network->inputLayer[neuron].value = dataset->imageData.images[item * INPUT_LAYER_SIZE + neuron];
+    }
     // Start by looping through the hidden layers
     for (int hiddenLayer = 0; hiddenLayer < HIDDEN_LAYERS; hiddenLayer++) {
         // The weighted sum of the previous layer's neuron values must be found to find the value of each neruon in the current layer
@@ -80,9 +82,17 @@ void propogate_forward(network_t *network) {
     }
 }
 
+void propogate_backward(network_t network) {
+}
+
 float ReLU(float input) {
     if (0.0f > input) return 0.0f;
     else return input;
+}
+
+float ReLU_derivative(float relu) {
+    if (relu > 0.0f) return 1.0f;
+    else return 0.0f;
 }
 
 void load_images(char *fileLocation, images_t *imageSet) {

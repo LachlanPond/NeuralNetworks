@@ -3,6 +3,7 @@
 #define HIDDEN_LAYERS 2
 #define HIDDEN_LAYER_SIZE 28
 #define OUTPUT_LAYER_SIZE 10
+#define BATCH_SIZE 100
 
 typedef struct {
     float value;

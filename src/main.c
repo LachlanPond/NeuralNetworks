@@ -14,6 +14,14 @@ int main() {
     load_images("data/train-images.idx3-ubyte", &trainingData.imageData);
     load_labels("data/train-labels.idx1-ubyte", &trainingData.labelData);
     network_initialise(&network);
+    for (int i = 0; i < INPUT_LAYER_SIZE; i++) {
+        network.inputLayer[i].value = trainingData.imageData.images[i];
+    }
+    propogate_forward(&network);
+    for (int i = 0; i < OUTPUT_LAYER_SIZE; i++) {
+        printf("%f ", network.outputLayer[i].value);
+    }
+    printf("\n");
     free(trainingData.imageData.images);
     return 0;
 }
